@@ -3,6 +3,7 @@ service: selfie2anime-image-handler
 plugins:
   - serverless-python-requirements
   - serverless-domain-manager
+  - serverless-pseudo-parameters
 
 custom:
   pythonRequirements:
@@ -13,6 +14,9 @@ custom:
     basePath: analysis
     stage: ${self:provider.stage}
     createRoute53Record: true
+  environment:
+    BUCKET_NAME: selfie2anime
+    QUEUE_NAME: selfie2anime
 
 package:
   exclude:
@@ -24,6 +28,23 @@ provider:
   runtime: python3.7
   stage: dev
   region: us-east-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+       - s3:PutObject
+       - s3:PutObjectAcl
+       - s3:GetObject"
+       - s3:DeleteObject
+      Resource:
+        - "arn:aws:s3:::${self:custom.environment.BUCKET_NAME}/*"
+    - Effect: Allow
+      Action:
+       - sqs:SendMessage
+      Resource:
+        - arn:aws:sqs:::${self:custom.environment.QUEUE_NAME}
+  environment:
+    BUCKET_NAME: ${self:custom.environment.BUCKET_NAME}
+    QUEUE_NAME: ${self:custom.environment.QUEUE_NAME}
 
 functions:
   selfie:
@@ -32,3 +53,15 @@ functions:
       - http:
           path: selfie
           method: post
+          cors: true
+
+resources:
+  Resources:
+    S3Bucketselfie2anime:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.environment.BUCKET_NAME}
+    Queueselfie2anime:
+      Type: AWS::SQS::Queue
+      Properties: 
+        QueueName: ${self:custom.environment.QUEUE_NAME}

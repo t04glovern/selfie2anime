@@ -12,6 +12,7 @@ serverless config credentials --provider aws --key <ACCESS KEY ID> --secret <SEC
 ```bash
 serverless plugin install -n serverless-python-requirements
 serverless plugin install -n serverless-domain-manager
+serverless plugin install -n serverless-pseudo-parameters
 ```
 
 Add the following to the `serveress.yml` file
@@ -20,6 +21,7 @@ Add the following to the `serveress.yml` file
 plugins:
   - serverless-python-requirements
   - serverless-domain-manager
+  - serverless-pseudo-parameters
 
 custom:
   pythonRequirements:
@@ -56,3 +58,4 @@ serverless invoke -f selfie --path test_data.json
 
 * [How to set up a custom domain name for Lambda & API Gateway with Serverless](https://serverless.com/blog/serverless-api-gateway-domain/)
 * [Custom domain in AWS API Gateway](https://medium.com/@maciejtreder/custom-domain-in-aws-api-gateway-a2b7feaf9c74)
+* [maciejtreder/serverless-apigw-binary](https://github.com/maciejtreder/serverless-apigw-binary)
