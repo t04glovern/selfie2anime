@@ -1,0 +1,23 @@
+service: selfie2anime-image-handler
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: non-linux
+    noDeploy: []
+
+provider:
+  name: aws
+  runtime: python3.7
+  stage: dev
+  region: us-east-1
+
+functions:
+  analysis:
+    handler: handler.analysis
+    events:
+      - http:
+          path: analysis
+          method: post
