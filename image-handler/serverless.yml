@@ -2,11 +2,22 @@ service: selfie2anime-image-handler
 
 plugins:
   - serverless-python-requirements
+  - serverless-domain-manager
 
 custom:
   pythonRequirements:
     dockerizePip: non-linux
     noDeploy: []
+  customDomain:
+    domainName: api.selfie2anime.com
+    basePath: analysis
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+
+package:
+  exclude:
+    - .venv/**
+    - node_modules/**
 
 provider:
   name: aws
@@ -15,9 +26,9 @@ provider:
   region: us-east-1
 
 functions:
-  analysis:
-    handler: handler.analysis
+  selfie:
+    handler: handler.selfie
     events:
       - http:
-          path: analysis
+          path: selfie
           method: post

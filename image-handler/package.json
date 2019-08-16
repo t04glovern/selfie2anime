@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "dependencies": {},
   "devDependencies": {
+    "serverless-domain-manager": "^3.3.0",
     "serverless-python-requirements": "^5.0.0"
   }
 }

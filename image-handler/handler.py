@@ -1,7 +1,7 @@
 import json
 
 
-def analysis(event, context):
+def selfie(event, context):
     body = {
         "message": "Go Serverless v1.0! Your function executed successfully!",
         "input": event
@@ -11,6 +11,8 @@ def analysis(event, context):
         "statusCode": 200,
         "body": json.dumps(body)
     }
+
+    print(event)
 
     return response
 
