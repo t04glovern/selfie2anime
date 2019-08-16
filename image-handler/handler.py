@@ -2,6 +2,7 @@ import base64
 import boto3
 import os
 import time
+import json
 
 bucket_name = os.environ['BUCKET_NAME']
 queue_name = os.environ['QUEUE_NAME']
@@ -22,13 +23,15 @@ def selfie(event, context):
     response = sqs.get_queue_url(QueueName=queue_name)
     queue_url = response['QueueUrl']
 
+    # Construct message
+    message = {
+        "bucket_name": bucket_name,
+        "bucket_key": file_name,
+        "email": email
+    }
+
     # Send message to SQS queue
-    response = sqs.send_message(QueueUrl=queue_url, MessageBody=body['image'], MessageAttributes={
-        'Email': {
-            'StringValue': email,
-            'DataType': 'String'
-        }
-    })
+    response = sqs.send_message(QueueUrl=queue_url, MessageBody=json.dumps(message))
 
     response = {
         "headers": {
@@ -37,9 +40,7 @@ def selfie(event, context):
         },
         "statusCode": 200,
         "body": {
-            "image": "https://s3.amazonaws.com/" + bucket_name + "/" + file_name,
             "message_md5": response['MD5OfMessageBody'],
-            "email": email
         }
     }
 
