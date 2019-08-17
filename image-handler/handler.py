@@ -46,7 +46,8 @@ def selfie(event, context):
             'timestamp': str(time.time()),
             'email': email,
             'bucket': bucket_name,
-            'key': file_name
+            'key': file_name,
+            'crop': crop
         }
     )
 
