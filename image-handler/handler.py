@@ -41,10 +41,7 @@ def selfie(event, context):
         "headers": {
             "Access-Control-Allow-Origin": "*",
         },
-        "statusCode": 200,
-        "body": {
-            "message_md5": response['MD5OfMessageBody'],
-        }
+        "statusCode": 200
     }
 
     return response
