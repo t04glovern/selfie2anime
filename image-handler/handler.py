@@ -9,9 +9,12 @@ queue_name = os.environ['QUEUE_NAME']
 
 
 def selfie(event, context):
-    body = event['body']
+    body = json.loads(event['body'])
+
     email = body['email']
-    image = base64.b64decode(body['image'])
+    crop = body['crop']
+    _, encoded = body['photo'].split(",", 1)
+    image = base64.b64decode(encoded)
 
     # Create S3 client and store image
     s3 = boto3.client('s3')
@@ -27,7 +30,8 @@ def selfie(event, context):
     message = {
         "bucket_name": bucket_name,
         "bucket_key": file_name,
-        "email": email
+        "email": email,
+        "crop": crop
     }
 
     # Send message to SQS queue
