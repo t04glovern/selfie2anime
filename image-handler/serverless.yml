@@ -40,10 +40,6 @@ provider:
     - Effect: Allow
       Action:
        - sqs:SendMessage
-      Resource:
-        - arn:aws:sqs:::${self:custom.environment.QUEUE_NAME}
-    - Effect: Allow
-      Action:
        - sqs:GetQueueUrl
       Resource:
         - "*"
