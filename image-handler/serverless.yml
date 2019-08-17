@@ -17,6 +17,7 @@ custom:
   environment:
     BUCKET_NAME: selfie2anime
     QUEUE_NAME: selfie2anime
+    DYNAMO_NAME: selfie2anime
 
 package:
   exclude:
@@ -43,9 +44,16 @@ provider:
        - sqs:GetQueueUrl
       Resource:
         - "*"
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:PutItem
+      Resource:
+        - "Fn::GetAtt": [ DynamoDbselfie2anime, Arn ]
   environment:
     BUCKET_NAME: ${self:custom.environment.BUCKET_NAME}
     QUEUE_NAME: ${self:custom.environment.QUEUE_NAME}
+    DYNAMO_TABLE: ${self:custom.environment.DYNAMO_NAME}
 
 functions:
   selfie:
@@ -66,3 +74,18 @@ resources:
       Type: AWS::SQS::Queue
       Properties: 
         QueueName: ${self:custom.environment.QUEUE_NAME}
+    DynamoDbselfie2anime:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.environment.DYNAMO_NAME}
+        AttributeDefinitions:
+          - AttributeName: timestamp
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: timestamp
+            KeyType: HASH
+          - AttributeName: email
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
