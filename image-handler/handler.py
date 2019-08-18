@@ -70,7 +70,7 @@ def count(event, context):
         TableName=dynamo_table
     )
 
-    item_count = str(table['Table']['ItemCount'])
+    item_count = table['Table']['ItemCount']
     body = {
         "count": item_count
     }
