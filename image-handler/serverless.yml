@@ -63,6 +63,13 @@ functions:
           path: selfie
           method: post
           cors: true
+  count:
+    handler: handler.count
+    events:
+      - http:
+          path: count
+          method: get
+          cors: true
 
 resources:
   Resources:

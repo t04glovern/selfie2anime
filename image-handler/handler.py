@@ -63,3 +63,24 @@ def selfie(event, context):
     }
 
     return response
+
+def count(event, context):
+    dynamodb = boto3.client('dynamodb')
+    table = dynamodb.describe_table(
+        TableName=dynamo_table
+    )
+
+    item_count = str(table['Table']['ItemCount'])
+    body = {
+        "count": item_count
+    }
+
+    response = {
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+        },
+        "statusCode": 200,
+        "body": json.dumps(body)
+    }
+
+    return response

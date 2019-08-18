@@ -49,6 +49,7 @@ pip install -r requirements.txt
 
 # Test locally
 serverless invoke local -f selfie --path test_data.json
+serverless invoke local -f count
 
 # Test Deployed version
 serverless invoke -f selfie --path test_data.json
