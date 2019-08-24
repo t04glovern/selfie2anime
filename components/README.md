@@ -19,13 +19,24 @@ cd image-handler
 serverless deploy
 ```
 
+## [Email Handler](email-handler/README.md)
+
+```bash
+cd email-handler
+```
+
 ## [UGATIT](UGATIT/README.md)
 
 Initialize submodule
 
 ```bash
 cd ..
+
+# Init
 git submodule update --init --recursive
+
+# Update
+git submodule update --recursive --remote
 ```
 
 ### Build
@@ -50,7 +61,7 @@ docker run --name selfie2anime-runner \
     -e PYTHONUNBUFFERED=1 \
     -e QUEUE_NAME='selfie2anime' \
     -e BUCKET_NAME='selfie2anime' \
-    -e SENDER_EMAIL='info@selfie2anime.com' \
+    -e SENDER_EMAIL='noreply@selfie2anime.com' \
     -e AWS_ACCESS_KEY_ID=$(aws --profile default configure get aws_access_key_id) \
     -e AWS_SECRET_ACCESS_KEY=$(aws --profile default configure get aws_secret_access_key) \
     -e AWS_DEFAULT_REGION='us-east-1' \
