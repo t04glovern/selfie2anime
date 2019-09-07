@@ -36,7 +36,7 @@ More information about the process seen above can be found in the following modu
 
 * [image-handler](components/image-handler/README.md)
   * Image processing pipeline
-* [UGATIT](components/UGATIT/README.md)
+* [UGATIT](https://github.com/t04glovern/UGATIT/blob/master/README.md)
   * UGATIT environment from Junho Kim and Minjae Kim and Hyeonwoo Kang and Kwanghee Lee
 
 ## Attributions
