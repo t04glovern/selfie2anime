@@ -12,6 +12,8 @@ This repository contains the source code for the backend for the [selfie2anime.c
 
 Source code for the frontend website can be found at [https://github.com/SilentByte/selfie2anime-site](https://github.com/SilentByte/selfie2anime-site)
 
+Also checkout the presentation ["Scaling Models to the Masses"](assets/Deploying-Models-to-the-Masses.pdf) I did for [Perth Machine Learning Group](https://www.pmlg.org/)
+
 ---
 
 ## How Does it Work?
