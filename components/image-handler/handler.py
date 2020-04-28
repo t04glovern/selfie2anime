@@ -4,6 +4,8 @@ import os
 import json
 import uuid
 import time
+import PIL
+import io
 
 bucket_name = os.environ['BUCKET_NAME']
 queue_name = os.environ['QUEUE_NAME']
@@ -18,12 +20,24 @@ def selfie(event, context):
     _, encoded = body['photo'].split(",", 1)
     image = base64.b64decode(encoded)
 
+    cropped_image = PIL.Image.open(io.BytesIO(image))
+    cropped_image = cropped_image.crop((crop['x'], crop['y'], crop['x'] + crop['width'], crop['y'] + crop['height']))
+    cropped_image = cropped_image.resize((256, 256))
+
+    cropped_image_data = io.BytesIO()
+    cropped_image.save(cropped_image_data, format='jpeg', quality=95)
+    cropped_image = cropped_image_data.getvalue()
+
     # Create S3 client and store image
     s3 = boto3.client('s3')
     folder_name = 'incoming'
-    file_name = str(uuid.uuid1())+'.jpg'
+    cropped_folder_name = 'incoming-cropped'
+    file_name = str(uuid.uuid1()) + '.jpg'
     file_path = folder_name + '/' + file_name
-    response = s3.put_object(Body=image, Bucket=bucket_name, Key=file_path)
+    cropped_file_path = cropped_folder_name + '/' + file_name
+
+    s3.put_object(Body=image, Bucket=bucket_name, Key=file_path)
+    s3.put_object(Body=cropped_image, Bucket=bucket_name, Key=cropped_file_path)
 
     # Create SQS client and send data for processing
     sqs = boto3.client('sqs')
@@ -34,6 +48,7 @@ def selfie(event, context):
     message = {
         "bucket_name": bucket_name,
         "bucket_key": file_path,
+        "bucket_cropped_key": cropped_file_path,
         "file_name": file_name,
         "email": email,
         "crop": crop
@@ -63,6 +78,7 @@ def selfie(event, context):
     }
 
     return response
+
 
 def count(event, context):
     dynamodb = boto3.client('dynamodb')
