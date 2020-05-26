@@ -1,3 +1,4 @@
 [submodule "components/UGATIT"]
 	path = components/UGATIT
 	url = https://github.com/t04glovern/UGATIT
+	branch = develop
