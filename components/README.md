@@ -19,12 +19,6 @@ cd image-handler
 serverless deploy
 ```
 
-## [Email Handler](email-handler/README.md)
-
-```bash
-cd email-handler
-```
-
 ## [UGATIT](UGATIT/README.md)
 
 Initialize submodule

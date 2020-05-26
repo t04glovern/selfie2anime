@@ -4,8 +4,9 @@ import os
 import json
 import uuid
 import time
-import PIL
 import io
+
+from PIL import Image
 
 bucket_name = os.environ['BUCKET_NAME']
 queue_name = os.environ['QUEUE_NAME']
@@ -20,7 +21,7 @@ def selfie(event, context):
     _, encoded = body['photo'].split(",", 1)
     image = base64.b64decode(encoded)
 
-    cropped_image = PIL.Image.open(io.BytesIO(image))
+    cropped_image = Image.open(io.BytesIO(image))
     cropped_image = cropped_image.crop((crop['x'], crop['y'], crop['x'] + crop['width'], crop['y'] + crop['height']))
     cropped_image = cropped_image.resize((256, 256))
 
