@@ -15,7 +15,7 @@ serverless plugin install -n serverless-domain-manager
 serverless plugin install -n serverless-pseudo-parameters
 ```
 
-Add the following to the `serveress.yml` file
+Add the following to the `serverless.yml` file
 
 ```yaml
 plugins:

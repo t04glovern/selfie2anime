@@ -17,6 +17,7 @@ custom:
   environment:
     BUCKET_NAME: selfie2anime
     QUEUE_NAME: selfie2anime
+    DLQ_NAME: selfie2anime-dlq
     DYNAMO_NAME: selfie2anime
 
 package:
@@ -28,6 +29,9 @@ provider:
   name: aws
   runtime: python3.7
   stage: dev
+  tracing:
+    apiGateway: true
+    lambda: true
   region: us-east-1
   iamRoleStatements:
     - Effect: Allow
@@ -81,6 +85,10 @@ resources:
       Type: AWS::SQS::Queue
       Properties: 
         QueueName: ${self:custom.environment.QUEUE_NAME}
+    Queueselfie2animedlq:
+      Type: AWS::SQS::Queue
+      Properties: 
+        QueueName: ${self:custom.environment.DLQ_NAME}
     DynamoDbselfie2anime:
       Type: AWS::DynamoDB::Table
       Properties:
