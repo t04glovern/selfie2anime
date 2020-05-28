@@ -74,6 +74,17 @@ functions:
           path: count
           method: get
           cors: true
+  me:
+    handler: sharer.me
+    events:
+      - http:
+          path: me
+          method: get
+          request:
+            parameters:
+              querystrings:
+                uuid: true
+
 
 resources:
   Resources:

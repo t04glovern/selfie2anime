@@ -33,7 +33,7 @@ def selfie(event, context):
     s3 = boto3.client('s3')
     folder_name = 'incoming'
     cropped_folder_name = 'incoming-cropped'
-    file_name = str(uuid.uuid1()) + '.jpg'
+    file_name = str(uuid.uuid4()) + '.jpg'
     file_path = folder_name + '/' + file_name
     cropped_file_path = cropped_folder_name + '/' + file_name
 
