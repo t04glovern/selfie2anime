@@ -6,7 +6,7 @@ def me(event, context):
     uuid = event['queryStringParameters']['uuid']
 
     image_url_escaped = 'https://selfie2anime.com/outgoing/{}.jpg'.format(uuid)
-    viewer_url_escaped = 'https://api.selfie2anime.com/me?uuid={}'.format(uuid)
+    viewer_url_escaped = 'https://api.selfie2anime.com/analysis/me?uuid={}'.format(uuid)
 
     content = Template('''
     <!DOCTYPE html>
@@ -245,13 +245,14 @@ def me(event, context):
                     </tr>
                     <tr>
                         <td valign="middle" class="bg_primary"
-                            style="height: 600px; line-height: 0">
+                            style="line-height: 0">
                             <a href="https://selfie2anime.com/"
                             title="Create your own selfie!">
                                 <img id="selfie"
                                     width="600" height="600"
                                     src="frame.jpg"
-                                    alt="Your Anime Selfie!">
+                                    alt="Your Anime Selfie!"
+                                    style="max-width: 100%; height: auto">
                             </a>
                         </td>
                     </tr>
