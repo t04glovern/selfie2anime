@@ -19,6 +19,7 @@ custom:
     QUEUE_NAME: selfie2anime
     DLQ_NAME: selfie2anime-dlq
     DYNAMO_NAME: selfie2anime
+    CLOUDFRONT_DIST: E8Q9SF5HYK3HW
 
 package:
   exclude:
@@ -44,6 +45,10 @@ provider:
         - "arn:aws:s3:::${self:custom.environment.BUCKET_NAME}/*"
     - Effect: Allow
       Action:
+       - cloudfront:CreateInvalidation
+      Resource: "*"
+    - Effect: Allow
+      Action:
        - sqs:SendMessage
        - sqs:GetQueueUrl
       Resource:
@@ -59,6 +64,7 @@ provider:
   environment:
     BUCKET_NAME: ${self:custom.environment.BUCKET_NAME}
     QUEUE_NAME: ${self:custom.environment.QUEUE_NAME}
+    CLOUDFRONT_DIST: ${self:custom.environment.CLOUDFRONT_DIST}
     DYNAMO_TABLE: ${self:custom.environment.DYNAMO_NAME}
 
 functions:

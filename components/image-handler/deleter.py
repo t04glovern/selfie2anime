@@ -1,10 +1,12 @@
 import boto3
 import os
 from string import Template
+from time import time
 
 from boto3.dynamodb.conditions import Key
 
 dynamo_table = os.environ['DYNAMO_TABLE']
+cloudfront_dist = os.environ['CLOUDFRONT_DIST']
 
 
 def delete(event, context):
@@ -39,6 +41,23 @@ def delete(event, context):
                 s3.Object(item['bucket'], 'incoming/{}'.format(item['key'])).delete()
             except Exception as e:
                 print('Failed to delete S3 incoming: {}'.format(item['key']))
+
+            try:
+                client = boto3.client('cloudfront')
+                response = client.create_invalidation(
+                    DistributionId=cloudfront_dist,
+                    InvalidationBatch={
+                    'Paths': {
+                        'Quantity': 1,
+                        'Items': [
+                            '/outgoing/{}'.format(item['key'])
+                            ],
+                        },
+                    'CallerReference': str(time()).replace(".", "")
+                    }
+                )
+            except Exception as e:
+                print('Failed to invalidate cache for: {}'.format(item['key']))
 
             html_body = """
             <!DOCTYPE html>
