@@ -52,8 +52,10 @@ provider:
       Action:
         - dynamodb:DescribeTable
         - dynamodb:PutItem
+        - dynamodb:Query
       Resource:
         - "Fn::GetAtt": [ DynamoDbselfie2anime, Arn ]
+        - "Fn::Join": [ "/", [ "Fn::GetAtt": [ DynamoDbselfie2anime, Arn ], "index", "key-index" ]]
   environment:
     BUCKET_NAME: ${self:custom.environment.BUCKET_NAME}
     QUEUE_NAME: ${self:custom.environment.QUEUE_NAME}
@@ -84,6 +86,17 @@ functions:
             parameters:
               querystrings:
                 uuid: true
+  delete:
+    handler: deleter.delete
+    events:
+      - http:
+          path: delete
+          method: get
+          request:
+            parameters:
+              querystrings:
+                uuid: true
+                key: true
 
 resources:
   Resources:

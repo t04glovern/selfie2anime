@@ -299,7 +299,7 @@ def me(event, context):
                         <td class="bg_dark email-section" style="text-align:center;">
                             <div class="heading-section heading-section-white">
                                 <p>
-                                    Copyright &copy; 2020 by
+                                    Copyright &copy; 2019-2020 by
                                     <a href="https://selfie2anime.com">Selfie2Anime.com</a>
                                 </p>
                             </div>

@@ -5,6 +5,7 @@ import json
 import uuid
 import time
 import io
+import secrets
 
 from PIL import Image
 
@@ -33,7 +34,7 @@ def selfie(event, context):
     s3 = boto3.client('s3')
     folder_name = 'incoming'
     cropped_folder_name = 'incoming-cropped'
-    file_name = str(uuid.uuid4()) + '.jpg'
+    file_name = str(secrets.token_urlsafe(30)) + '.jpg'
     file_path = folder_name + '/' + file_name
     cropped_file_path = cropped_folder_name + '/' + file_name
 
@@ -45,11 +46,15 @@ def selfie(event, context):
     response = sqs.get_queue_url(QueueName=queue_name)
     queue_url = response['QueueUrl']
 
+    # Secret delete key
+    token = secrets.token_urlsafe(16)
+
     # Construct message
     message = {
         "bucket_name": bucket_name,
         "bucket_key": file_path,
         "bucket_cropped_key": cropped_file_path,
+        "token": token,
         "file_name": file_name,
         "email": email,
         "crop": crop
@@ -63,6 +68,7 @@ def selfie(event, context):
             'email': email,
             'bucket': bucket_name,
             'key': file_name,
+            'token': token,
             'crop': crop
         }
     )
