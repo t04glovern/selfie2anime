@@ -344,7 +344,6 @@ def me(event, context):
             function fetchImage(url) {
                 return new Promise((resolve, reject) => {
                     const image = new Image();
-                    image.crossOrigin = "anonymous";
                     image.onerror = () => reject(new Error("Failed to load frame/selfie"));
                     image.onload = () => resolve(image);
                     image.src = url;
@@ -369,8 +368,9 @@ def me(event, context):
                         document.getElementById("spinner-container").style.display = "none";
                     })
                     .catch(() => {
+                        document.getElementById("spinner-container").style.display = "none";
                         document.getElementById("spinner").style.display = "none";
-                        document.getElementById("error").style.display = "inline";
+                        document.getElementById("selfie").src = SELFIE_URL;
                     });
             }
 

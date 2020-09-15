@@ -23,6 +23,25 @@ def selfie(event, context):
     body = json.loads(event['body'])
 
     email = body['email']
+    try:
+        email_domain = email.split('@')[1].lower()
+        if email_domain == "post-shift.ru":
+            response = {
+                "headers": {
+                    "Access-Control-Allow-Origin": "*",
+                },
+                "statusCode": 200
+            }
+            return response
+    except Exception as e:
+        response = {
+            "headers": {
+                "Access-Control-Allow-Origin": "*",
+            },
+            "statusCode": 200
+        }
+        return response
+        
     crop = body['crop']
     _, encoded = body['photo'].split(",", 1)
     image = base64.b64decode(encoded)
