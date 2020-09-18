@@ -25,7 +25,7 @@ def selfie(event, context):
     email = body['email']
     try:
         email_domain = email.split('@')[1].lower()
-        if email_domain == "post-shift.ru":
+        if email_domain == "post-shift.ru" or email_domain == "1secmail.com":
             response = {
                 "headers": {
                     "Access-Control-Allow-Origin": "*",
@@ -41,7 +41,7 @@ def selfie(event, context):
             "statusCode": 200
         }
         return response
-        
+
     crop = body['crop']
     _, encoded = body['photo'].split(",", 1)
     image = base64.b64decode(encoded)

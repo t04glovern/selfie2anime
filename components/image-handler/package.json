@@ -2,7 +2,9 @@
   "name": "selfie2anime-image-handler",
   "description": "",
   "version": "0.1.0",
-  "dependencies": {},
+  "dependencies": {
+    "serverless-associate-waf": "^1.2.1"
+  },
   "devDependencies": {
     "serverless-domain-manager": "^3.3.2",
     "serverless-pseudo-parameters": "^2.4.0",

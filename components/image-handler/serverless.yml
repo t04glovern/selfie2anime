@@ -4,11 +4,15 @@ plugins:
   - serverless-python-requirements
   - serverless-domain-manager
   - serverless-pseudo-parameters
+  - serverless-associate-waf
 
 custom:
   pythonRequirements:
     dockerizePip: non-linux
     noDeploy: []
+  associateWaf:
+    name: ${self:custom.environment.WAF_NAME}
+    version: V2
   customDomain:
     domainName: api.selfie2anime.com
     basePath: analysis
@@ -20,6 +24,7 @@ custom:
     DLQ_NAME: selfie2anime-dlq
     DYNAMO_NAME: selfie2anime
     CLOUDFRONT_DIST: E8Q9SF5HYK3HW
+    WAF_NAME: selfie2anime-waf
 
 package:
   exclude:
@@ -112,11 +117,11 @@ resources:
         BucketName: ${self:custom.environment.BUCKET_NAME}
     Queueselfie2anime:
       Type: AWS::SQS::Queue
-      Properties: 
+      Properties:
         QueueName: ${self:custom.environment.QUEUE_NAME}
     Queueselfie2animedlq:
       Type: AWS::SQS::Queue
-      Properties: 
+      Properties:
         QueueName: ${self:custom.environment.DLQ_NAME}
     DynamoDbselfie2anime:
       Type: AWS::DynamoDB::Table
@@ -133,3 +138,29 @@ resources:
           - AttributeName: email
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
+    WAFv2WebACL:
+        Type: AWS::WAFv2::WebACL
+        Properties:
+            Name: ${self:custom.environment.WAF_NAME}
+            Description: Selfie2Anime Rate Limits
+            DefaultAction:
+                Allow: {}
+            VisibilityConfig:
+                SampledRequestsEnabled: true
+                CloudWatchMetricsEnabled: true
+                MetricName: rate-limits
+            Scope: "REGIONAL"
+            Rules:
+              -
+                Name: rate-limiter
+                Priority: 0
+                Action:
+                    Block: {}
+                Statement:
+                    RateBasedStatement:
+                        Limit: 100
+                        AggregateKeyType: IP
+                VisibilityConfig:
+                    SampledRequestsEnabled: true
+                    CloudWatchMetricsEnabled: true
+                    MetricName: rate-limiter
