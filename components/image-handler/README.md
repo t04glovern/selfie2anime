@@ -12,7 +12,6 @@ serverless config credentials --provider aws --key <ACCESS KEY ID> --secret <SEC
 ```bash
 serverless plugin install -n serverless-python-requirements
 serverless plugin install -n serverless-domain-manager
-serverless plugin install -n serverless-pseudo-parameters
 ```
 
 Add the following to the `serverless.yml` file
@@ -21,7 +20,6 @@ Add the following to the `serverless.yml` file
 plugins:
   - serverless-python-requirements
   - serverless-domain-manager
-  - serverless-pseudo-parameters
 
 custom:
   pythonRequirements:

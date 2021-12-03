@@ -3,9 +3,7 @@ service: selfie2anime-image-handler
 plugins:
   - serverless-python-requirements
   - serverless-domain-manager
-  - serverless-pseudo-parameters
   - serverless-associate-waf
-
 custom:
   pythonRequirements:
     dockerizePip: non-linux
@@ -33,7 +31,8 @@ package:
 
 provider:
   name: aws
-  runtime: python3.7
+  runtime: python3.9
+  lambdaHashingVersion: 20201221
   stage: dev
   tracing:
     apiGateway: true
