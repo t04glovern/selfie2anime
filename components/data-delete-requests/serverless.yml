@@ -1,0 +1,57 @@
+service: selfie2anime-email-data-handler
+
+package:
+  patterns:
+    - '!.venv/**'
+    - '!node_modules/**'
+
+custom:
+  environment:
+    BUCKET_NAME: selfie2anime
+    DYNAMO_NAME: selfie2anime
+
+provider:
+  name: aws
+  runtime: python3.9
+  stage: dev
+  tracing:
+    lambda: true
+  region: us-east-1
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+          - workmailmessageflow:GetRawMessageContent
+          Resource:
+            - "*"
+        - Effect: Allow
+          Action:
+          - s3:GetObject"
+          - s3:DeleteObject
+          Resource:
+            - arn:aws:s3:::${self:custom.environment.BUCKET_NAME}/*
+        - Effect: Allow
+          Action:
+            - dynamodb:DescribeTable
+            - dynamodb:DeleteItem
+            - dynamodb:Query
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.environment.DYNAMO_NAME}
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.environment.DYNAMO_NAME}/index/email-timestamp-index
+
+functions:
+  mail:
+    handler: handler.mail
+    environment:
+      DYNAMODB_TABLE_NAME: ${self:custom.environment.DYNAMO_NAME}
+
+resources:
+  Resources:
+    PermissionToCallLambdaMailLambda:
+      Type: AWS::Lambda::Permission
+      Properties:
+        Action: lambda:InvokeFunction
+        FunctionName: !Ref MailLambdaFunction
+        Principal: !Sub 'workmail.${aws:region}.amazonaws.com'
+        SourceArn: !Sub 'arn:aws:workmail:${aws:region}:${aws:accountId}:organization/${file(./config.json):org_id}'
