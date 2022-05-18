@@ -1,6 +1,7 @@
 import email
 import logging
 import os
+import uuid
 
 from email import policy
 
@@ -15,11 +16,22 @@ DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME")
 if DYNAMODB_TABLE_NAME is None:
     logger.error('No DYNAMODB_TABLE_NAME value specified.')
 
+SENDER_EMAIL = os.getenv("SENDER_EMAIL")
+if SENDER_EMAIL is None:
+    logger.error('No SENDER_EMAIL value specified.')
+
 dynamodb_client = boto3.resource('dynamodb')
 dynamodb_table = dynamodb_client.Table(DYNAMODB_TABLE_NAME)
 
 workmail_message_flow = boto3.client('workmailmessageflow')
+ses_client = boto3.client('ses')
 
+UPDATED_EMAIL_BUCKET = os.getenv('UPDATED_EMAIL_BUCKET')
+if not UPDATED_EMAIL_BUCKET:
+    logger.error('No UPDATED_EMAIL_BUCKET value specified.')
+    raise ValueError("UPDATED_EMAIL_BUCKET not set in environment. Please follow https://docs.aws.amazon.com/lambda/latest/dg/env_variables.html to set it")
+
+s3_client = boto3.client('s3')
 
 def extract_text_body(parsed_email):
     """
@@ -75,9 +87,57 @@ def download_email(message_id):
     response = workmail_message_flow.get_raw_message_content(
         messageId=message_id)
     email_content = response['messageContent'].read()
-    email_generation_policy = policy.SMTP.clone(refold_source='none')
     logger.info("Downloaded email from WorkMail successfully")
-    return email.message_from_bytes(email_content, policy=email_generation_policy)
+    return email.message_from_bytes(email_content)
+
+
+def update_email_subject(downloaded_email, email_subject):
+    """
+    Updates the subject of the downloaded email.
+    Parameters
+    ----------
+    downloaded_email: email.message.Message, required
+         EmailMessage representation the original downloaded email
+    email_subject: string, required
+        Subject of the email
+    Returns
+    -------
+    email.message.Message
+        EmailMessage representation the updated email.
+    """
+    new_subject =  f"[ACTIONED] {email_subject}"
+    downloaded_email.replace_header('Subject', new_subject)
+    logger.info("Message subject modified to: %s", new_subject)
+    return downloaded_email
+
+
+def update_workmail_email(message_id, content):
+    """
+    Uploads the updated message to an S3 bucket in your account and then updates it at WorkMail via
+    PutRawMessageContent API.
+    Reference: https://docs.aws.amazon.com/workmail/latest/adminguide/update-with-lambda.html
+    Parameters
+    ----------
+    message_id: string, required
+        message_id of the email to download
+    content: email.message.Message, required
+         EmailMessage representation the updated email
+    Returns
+    -------
+    None
+    """
+
+    key = str(uuid.uuid4())
+    s3_client.put_object(Body=content.as_bytes(), Bucket=UPDATED_EMAIL_BUCKET, Key=key)
+    s3_reference = {
+        'bucket': UPDATED_EMAIL_BUCKET,
+        'key': key
+    }
+    content = {
+        's3Reference': s3_reference
+    }
+    workmail_message_flow.put_raw_message_content(messageId=message_id, content=content)
+    logger.info("Updated email with msg_id: %s sent to WorkMail successfully", message_id)
 
 
 def remove_data_for_email(parsed_email):
@@ -88,7 +148,6 @@ def remove_data_for_email(parsed_email):
     )
 
     for item in resp['Items']:
-        s3_client = boto3.resource('s3')
         # Delete outgoing
         try:
             s3_client.Object(item['bucket'], f"outgoing/{item['key']}").delete()
@@ -126,3 +185,43 @@ def remove_data_for_email(parsed_email):
         except ClientError as err:
             logger.error("Failed to delete DynamoDB item email: %s @ %s, error: %s", item['timestamp'], item['email'], err)
             break
+
+
+def send_confirmation_email(parsed_email):
+    charset = "UTF-8"
+    html_email_content = """
+        <html>
+            <head></head>
+            <p>Hi,</p>
+            <p>This is a confirmation that all your data associated with this email has been removed.</p><br>
+            <p>Regards,</p>
+            <p>Selfie2Anime Team</p>
+            </body>
+        </html>
+    """
+
+    try:
+        ses_client.send_email(
+            Destination={
+                "ToAddresses": [
+                    parsed_email,
+                ],
+            },
+            Message={
+                "Body": {
+                    "Html": {
+                        "Charset": charset,
+                        "Data": html_email_content,
+                    }
+                },
+                "Subject": {
+                    "Charset": charset,
+                    "Data": "Selfie2anime data erasure request - Confirmation",
+                },
+            },
+            Source=SENDER_EMAIL,
+        )
+        logger.info("Confirmation email sent to: %s", parsed_email)
+    except ClientError as err:
+        logger.error("Failed to send confirmation email to: %s, error: %s", parsed_email, err)
+    

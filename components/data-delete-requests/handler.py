@@ -65,7 +65,10 @@ def mail(event, context):
             logger.info("Received data erasure request from %s", from_addr)
             logger.info("Email subject: %s", subject)
             logger.info("Email text body: %s", text_body)
-            # utils.remove_data_for_email(from_addr)
+            utils.remove_data_for_email(parsed_email=from_addr)
+            updated_email = utils.update_email_subject(downloaded_email=downloaded_email, email_subject=subject)
+            utils.update_workmail_email(message_id=message_id, content=updated_email)
+            utils.send_confirmation_email(parsed_email=from_addr)
         else:
             logger.info(
                 "Email with subject: %s is not a data erasure request", subject)

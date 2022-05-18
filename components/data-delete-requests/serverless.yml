@@ -9,6 +9,8 @@ custom:
   environment:
     BUCKET_NAME: selfie2anime
     DYNAMO_NAME: selfie2anime
+    SENDER_EMAIL: legal@selfie2anime.com
+    UPDATED_EMAIL_BUCKET: selfie2anime-data-emails
 
 provider:
   name: aws
@@ -22,13 +24,14 @@ provider:
       statements:
         - Effect: Allow
           Action:
-          - workmailmessageflow:GetRawMessageContent
+            - workmailmessageflow:GetRawMessageContent
+            - workmailmessageflow:PutRawMessageContent
           Resource:
             - "*"
         - Effect: Allow
           Action:
-          - s3:GetObject"
-          - s3:DeleteObject
+            - s3:GetObject"
+            - s3:DeleteObject
           Resource:
             - arn:aws:s3:::${self:custom.environment.BUCKET_NAME}/*
         - Effect: Allow
@@ -39,12 +42,28 @@ provider:
           Resource:
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.environment.DYNAMO_NAME}
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.environment.DYNAMO_NAME}/index/email-timestamp-index
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+            - ses:SendRawEmail
+          Resource: "*"
+          Condition:
+            StringEquals:
+              ses:FromAddress: ${self:custom.environment.SENDER_EMAIL}
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:PutObjectAcl
+          Resource:
+            - !Sub 'arn:aws:s3:::${self:custom.environment.UPDATED_EMAIL_BUCKET}/*'
 
 functions:
   mail:
     handler: handler.mail
     environment:
       DYNAMODB_TABLE_NAME: ${self:custom.environment.DYNAMO_NAME}
+      SENDER_EMAIL: ${self:custom.environment.SENDER_EMAIL}
+      UPDATED_EMAIL_BUCKET: ${self:custom.environment.UPDATED_EMAIL_BUCKET}
 
 resources:
   Resources:
@@ -55,3 +74,30 @@ resources:
         FunctionName: !Ref MailLambdaFunction
         Principal: !Sub 'workmail.${aws:region}.amazonaws.com'
         SourceArn: !Sub 'arn:aws:workmail:${aws:region}:${aws:accountId}:organization/${file(./config.json):org_id}'
+
+    WorkMailUpdateBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.environment.UPDATED_EMAIL_BUCKET}
+
+    WorkMailUpdateBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref WorkMailUpdateBucket
+        PolicyDocument:
+          Version: "2008-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: workmail.${aws:region}.amazonaws.com
+              Action:
+                - s3:GetObject
+                - s3:GetObjectVersion
+              Resource: !Sub 'arn:aws:s3:::${self:custom.environment.UPDATED_EMAIL_BUCKET}/*'
+              Condition:
+                StringEquals:
+                  aws:SourceAccount: ${aws:accountId}
+                Bool:
+                  aws:SecureTransport: 'true'
+                ArnLike:
+                  aws:SourceArn: !Sub 'arn:aws:workmailmessageflow:${aws:region}:${aws:accountId}:message/${file(./config.json):org_id}/*'
