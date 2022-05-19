@@ -1,0 +1,178 @@
+service: selfie2anime-email-data-handler
+
+package:
+  patterns:
+    - '!.venv/**'
+    - '!node_modules/**'
+
+custom:
+  environment:
+    BUCKET_NAME: selfie2anime
+    DYNAMO_NAME: selfie2anime
+    SENDER_EMAIL: legal@selfie2anime.com
+    UPDATED_EMAIL_BUCKET: selfie2anime-data-emails
+
+provider:
+  name: aws
+  runtime: python3.9
+  stage: dev
+  tracing:
+    lambda: true
+  region: us-east-1
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - workmailmessageflow:GetRawMessageContent
+            - workmailmessageflow:PutRawMessageContent
+          Resource:
+            - "*"
+        - Effect: Allow
+          Action:
+            - s3:GetObject"
+            - s3:DeleteObject
+          Resource:
+            - arn:aws:s3:::${self:custom.environment.BUCKET_NAME}/*
+        - Effect: Allow
+          Action:
+            - dynamodb:DescribeTable
+            - dynamodb:DeleteItem
+            - dynamodb:Query
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.environment.DYNAMO_NAME}
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.environment.DYNAMO_NAME}/index/email-timestamp-index
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+            - ses:SendRawEmail
+          Resource: "*"
+          Condition:
+            StringEquals:
+              ses:FromAddress: ${self:custom.environment.SENDER_EMAIL}
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:PutObjectAcl
+          Resource:
+            - !Sub 'arn:aws:s3:::${self:custom.environment.UPDATED_EMAIL_BUCKET}/*'
+
+functions:
+  mail:
+    handler: handler.mail
+    environment:
+      DYNAMODB_TABLE_NAME: ${self:custom.environment.DYNAMO_NAME}
+      SENDER_EMAIL: ${self:custom.environment.SENDER_EMAIL}
+      UPDATED_EMAIL_BUCKET: ${self:custom.environment.UPDATED_EMAIL_BUCKET}
+
+resources:
+  Resources:
+    PermissionToCallLambdaMailLambda:
+      Type: AWS::Lambda::Permission
+      Properties:
+        Action: lambda:InvokeFunction
+        FunctionName: !Ref MailLambdaFunction
+        Principal: !Sub 'workmail.${aws:region}.amazonaws.com'
+        SourceArn: !Sub 'arn:aws:workmail:${aws:region}:${aws:accountId}:organization/${file(./config.json):org_id}'
+
+    WorkMailUpdateBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.environment.UPDATED_EMAIL_BUCKET}
+
+    WorkMailUpdateBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref WorkMailUpdateBucket
+        PolicyDocument:
+          Version: "2008-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: workmail.${aws:region}.amazonaws.com
+              Action:
+                - s3:GetObject
+                - s3:GetObjectVersion
+              Resource: !Sub 'arn:aws:s3:::${self:custom.environment.UPDATED_EMAIL_BUCKET}/*'
+              Condition:
+                StringEquals:
+                  aws:SourceAccount: ${aws:accountId}
+                Bool:
+                  aws:SecureTransport: 'true'
+                ArnLike:
+                  aws:SourceArn: !Sub 'arn:aws:workmailmessageflow:${aws:region}:${aws:accountId}:message/${file(./config.json):org_id}/*'
+
+    # WorkMailExportBucket:
+    #   Type: AWS::S3::Bucket
+
+    # WorkMailExportBucketKey:
+    #   Type: AWS::KMS::Key
+    #   DeletionPolicy: Retain
+    #   Properties:
+    #     Description: Symmetric CMK used to encrypt exported WorkMail
+    #     KeyPolicy:
+    #       Version: '2012-10-17'
+    #       Id: workmail-export-key
+    #       Statement:
+    #       - Sid: Enable IAM User Permissions
+    #         Effect: Allow
+    #         Principal:
+    #           AWS: !Sub 'arn:aws:iam::${aws:accountId}:root'
+    #         Action: kms:*
+    #         Resource: '*'
+    #       - Sid: Allow administration of the key
+    #         Effect: Allow
+    #         Principal:
+    #           AWS: !Sub 'arn:aws:iam::${aws:accountId}:role/${file(./config.json):kms_admin_role}'
+    #         Action:
+    #           - kms:Create*
+    #           - kms:Describe*
+    #           - kms:Enable*
+    #           - kms:List*
+    #           - kms:Put*
+    #           - kms:Update*
+    #           - kms:Revoke*
+    #           - kms:Disable*
+    #           - kms:Get*
+    #           - kms:Delete*
+    #           - kms:ScheduleKeyDeletion
+    #           - kms:CancelKeyDeletion
+    #         Resource: '*'
+
+    # WorkMailExportRole:
+    #   Type: 'AWS::IAM::Role'
+    #   Properties:
+    #     Policies:
+    #       - PolicyName: workmail-export
+    #         PolicyDocument:
+    #           Version: "2012-10-17"
+    #           Statement:
+    #             - Effect: Allow
+    #               Action:
+    #                 - s3:AbortMultipartUpload
+    #                 - s3:PutObject
+    #                 - s3:GetBucketPolicyStatus
+    #               Resource:
+    #                 - !Sub 'arn:aws:s3:::${WorkMailExportBucket}'
+    #                 - !Sub 'arn:aws:s3:::${WorkMailExportBucket}/*'
+    #             - Effect: Allow
+    #               Action:
+    #                 - kms:Decrypt
+    #                 - kms:GenerateDataKey
+    #               Resource:
+    #                 - !GetAtt WorkMailExportBucketKey.Arn
+    #               Condition:
+    #                 StringEquals:
+    #                   kms:ViaService: s3.${aws:region}.amazonaws.com
+    #                 StringLike:
+    #                   kms:EncryptionContext:aws:s3:arn: !Sub 'arn:aws:s3:::${WorkMailExportBucket}/*'
+    #     AssumeRolePolicyDocument:
+    #       Version: "2012-10-17"
+    #       Statement:
+    #         - Effect: Allow
+    #           Principal:
+    #             Service: export.workmail.amazonaws.com
+    #           Action: sts:AssumeRole
+    #           Condition:
+    #             StringEquals:
+    #               sts:ExternalId: !Ref AWS::AccountId
