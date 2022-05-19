@@ -1,6 +1,7 @@
 import logging
 from email import message_from_file
 import glob
+import os
 
 import utils
 
@@ -26,3 +27,8 @@ if __name__ == '__main__':
             if not DRYRUN:
                 utils.remove_data_for_email(parsed_email=from_addr)
                 utils.send_confirmation_email(parsed_email=from_addr)
+                try:
+                    logger.info("Success, removing email: %s", eml_file)
+                    os.remove(eml_file)
+                except OSError as e:  ## if failed, report it back to the user ##
+                    logger.error("Error: %s - %s.", e.filename, e.strerror)
