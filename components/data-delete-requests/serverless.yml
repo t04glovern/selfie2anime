@@ -101,3 +101,78 @@ resources:
                   aws:SecureTransport: 'true'
                 ArnLike:
                   aws:SourceArn: !Sub 'arn:aws:workmailmessageflow:${aws:region}:${aws:accountId}:message/${file(./config.json):org_id}/*'
+
+    # WorkMailExportBucket:
+    #   Type: AWS::S3::Bucket
+
+    # WorkMailExportBucketKey:
+    #   Type: AWS::KMS::Key
+    #   DeletionPolicy: Retain
+    #   Properties:
+    #     Description: Symmetric CMK used to encrypt exported WorkMail
+    #     KeyPolicy:
+    #       Version: '2012-10-17'
+    #       Id: workmail-export-key
+    #       Statement:
+    #       - Sid: Enable IAM User Permissions
+    #         Effect: Allow
+    #         Principal:
+    #           AWS: !Sub 'arn:aws:iam::${aws:accountId}:root'
+    #         Action: kms:*
+    #         Resource: '*'
+    #       - Sid: Allow administration of the key
+    #         Effect: Allow
+    #         Principal:
+    #           AWS: !Sub 'arn:aws:iam::${aws:accountId}:role/${file(./config.json):kms_admin_role}'
+    #         Action:
+    #           - kms:Create*
+    #           - kms:Describe*
+    #           - kms:Enable*
+    #           - kms:List*
+    #           - kms:Put*
+    #           - kms:Update*
+    #           - kms:Revoke*
+    #           - kms:Disable*
+    #           - kms:Get*
+    #           - kms:Delete*
+    #           - kms:ScheduleKeyDeletion
+    #           - kms:CancelKeyDeletion
+    #         Resource: '*'
+
+    # WorkMailExportRole:
+    #   Type: 'AWS::IAM::Role'
+    #   Properties:
+    #     Policies:
+    #       - PolicyName: workmail-export
+    #         PolicyDocument:
+    #           Version: "2012-10-17"
+    #           Statement:
+    #             - Effect: Allow
+    #               Action:
+    #                 - s3:AbortMultipartUpload
+    #                 - s3:PutObject
+    #                 - s3:GetBucketPolicyStatus
+    #               Resource:
+    #                 - !Sub 'arn:aws:s3:::${WorkMailExportBucket}'
+    #                 - !Sub 'arn:aws:s3:::${WorkMailExportBucket}/*'
+    #             - Effect: Allow
+    #               Action:
+    #                 - kms:Decrypt
+    #                 - kms:GenerateDataKey
+    #               Resource:
+    #                 - !GetAtt WorkMailExportBucketKey.Arn
+    #               Condition:
+    #                 StringEquals:
+    #                   kms:ViaService: s3.${aws:region}.amazonaws.com
+    #                 StringLike:
+    #                   kms:EncryptionContext:aws:s3:arn: !Sub 'arn:aws:s3:::${WorkMailExportBucket}/*'
+    #     AssumeRolePolicyDocument:
+    #       Version: "2012-10-17"
+    #       Statement:
+    #         - Effect: Allow
+    #           Principal:
+    #             Service: export.workmail.amazonaws.com
+    #           Action: sts:AssumeRole
+    #           Condition:
+    #             StringEquals:
+    #               sts:ExternalId: !Ref AWS::AccountId

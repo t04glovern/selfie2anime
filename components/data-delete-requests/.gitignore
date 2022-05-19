@@ -22,3 +22,6 @@ __pycache__/
 # Serverless directories
 .serverless
 config.json
+
+# Email folder
+emails/
