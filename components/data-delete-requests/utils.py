@@ -12,11 +12,13 @@ logger.setLevel(logging.INFO)
 
 DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME")
 if DYNAMODB_TABLE_NAME is None:
-    logger.error('No DYNAMODB_TABLE_NAME value specified.')
+    logger.info('No DYNAMODB_TABLE_NAME value specified. Defaulting to selfie2anime')
+    DYNAMODB_TABLE_NAME = "selfie2anime"
 
 SENDER_EMAIL = os.getenv("SENDER_EMAIL")
 if SENDER_EMAIL is None:
-    logger.error('No SENDER_EMAIL value specified.')
+    logger.info('No SENDER_EMAIL value specified. Defaulting to legal@selfie2anime.com')
+    SENDER_EMAIL = "legal@selfie2anime.com"
 
 dynamodb_client = boto3.resource('dynamodb')
 dynamodb_table = dynamodb_client.Table(DYNAMODB_TABLE_NAME)
@@ -26,8 +28,8 @@ ses_client = boto3.client('ses')
 
 UPDATED_EMAIL_BUCKET = os.getenv('UPDATED_EMAIL_BUCKET')
 if not UPDATED_EMAIL_BUCKET:
-    logger.error('No UPDATED_EMAIL_BUCKET value specified.')
-    raise ValueError("UPDATED_EMAIL_BUCKET not set in environment. Please follow https://docs.aws.amazon.com/lambda/latest/dg/env_variables.html to set it")
+    logger.info('No UPDATED_EMAIL_BUCKET value specified. Defaulting to selfie2anime-data-emails')
+    UPDATED_EMAIL_BUCKET = "selfie2anime-data-emails"
 
 s3_client = boto3.client('s3')
 s3_resource = boto3.resource('s3')
