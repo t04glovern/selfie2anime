@@ -3,8 +3,6 @@ import logging
 import os
 import uuid
 
-from email import policy
-
 import boto3
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
@@ -32,6 +30,7 @@ if not UPDATED_EMAIL_BUCKET:
     raise ValueError("UPDATED_EMAIL_BUCKET not set in environment. Please follow https://docs.aws.amazon.com/lambda/latest/dg/env_variables.html to set it")
 
 s3_client = boto3.client('s3')
+s3_resource = boto3.resource('s3')
 
 def extract_text_body(parsed_email):
     """
@@ -141,6 +140,16 @@ def update_workmail_email(message_id, content):
 
 
 def remove_data_for_email(parsed_email):
+    """
+    Removes data for a given email address
+    Parameters
+    ----------
+    parsed_email: string, required
+        The parsed email address to delete data for
+    Returns
+    -------
+    None
+    """
     resp = dynamodb_table.query(
         # Add the name of the index you want to use in your query.
         IndexName="email-timestamp-index",
@@ -150,7 +159,7 @@ def remove_data_for_email(parsed_email):
     for item in resp['Items']:
         # Delete outgoing
         try:
-            s3_client.Object(item['bucket'], f"outgoing/{item['key']}").delete()
+            s3_resource.Object(item['bucket'], f"outgoing/{item['key']}").delete()
             logger.info("Delete successful for S3 outgoing: %s", item['key'])
         except ClientError as err:
             logger.error(
@@ -158,7 +167,7 @@ def remove_data_for_email(parsed_email):
             break
         # Delete incoming-cropped
         try:
-            s3_client.Object(item['bucket'], f"incoming-cropped/{item['key']}").delete()
+            s3_resource.Object(item['bucket'], f"incoming-cropped/{item['key']}").delete()
             logger.info("Delete successful for S3 incoming-cropped: %s", item['key'])
         except ClientError as err:
             logger.error(
@@ -166,7 +175,7 @@ def remove_data_for_email(parsed_email):
             break
         # Delete incoming
         try:
-            s3_client.Object(item['bucket'], f"incoming/{item['key']}").delete()
+            s3_resource.Object(item['bucket'], f"incoming/{item['key']}").delete()
             logger.info("Delete successful for S3 incoming: %s", item['key'])
         except ClientError as err:
             logger.error(
@@ -188,6 +197,16 @@ def remove_data_for_email(parsed_email):
 
 
 def send_confirmation_email(parsed_email):
+    """
+    Sends confirmation email to email of customer requesting data deletion
+    Parameters
+    ----------
+    parsed_email: string, required
+        The parsed email address to delete data for
+    Returns
+    -------
+    None
+    """
     charset = "UTF-8"
     html_email_content = """
         <html>
