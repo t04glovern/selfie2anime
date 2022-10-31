@@ -2,17 +2,11 @@ import base64
 import boto3
 import os
 import json
-import uuid
 import time
 import io
 import secrets
 
 from PIL import Image
-from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.core import patch
-
-libraries = (['boto3'])
-patch(libraries)
 
 bucket_name = os.environ['BUCKET_NAME']
 queue_name = os.environ['QUEUE_NAME']

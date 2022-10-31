@@ -1,4 +1,5 @@
 service: selfie2anime-email-data-handler
+frameworkVersion: '3.23.0'
 
 package:
   patterns:
@@ -17,7 +18,7 @@ provider:
   runtime: python3.9
   stage: dev
   tracing:
-    lambda: true
+    lambda: false
   region: us-east-1
   iam:
     role:

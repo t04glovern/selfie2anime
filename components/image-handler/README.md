@@ -23,7 +23,7 @@ plugins:
 
 custom:
   pythonRequirements:
-    dockerizePip: non-linux
+    dockerizePip: true
 ```
 
 ## Deploy

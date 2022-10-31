@@ -1,4 +1,5 @@
 service: selfie2anime-image-handler
+frameworkVersion: '^2.68.0'
 
 plugins:
   - serverless-python-requirements
@@ -6,7 +7,7 @@ plugins:
   - serverless-associate-waf
 custom:
   pythonRequirements:
-    dockerizePip: non-linux
+    dockerizePip: true
     noDeploy: []
   associateWaf:
     name: ${self:custom.environment.WAF_NAME}
@@ -22,7 +23,7 @@ custom:
     DLQ_NAME: selfie2anime-dlq
     DYNAMO_NAME: selfie2anime
     CLOUDFRONT_DIST: E8Q9SF5HYK3HW
-    WAF_NAME: selfie2anime-waf
+    WAF_NAME: selfie2anime
 
 package:
   exclude:
@@ -31,12 +32,12 @@ package:
 
 provider:
   name: aws
-  runtime: python3.9
+  runtime: python3.8
   lambdaHashingVersion: 20201221
   stage: dev
   tracing:
-    apiGateway: true
-    lambda: true
+    apiGateway: false
+    lambda: false
   region: us-east-1
   iamRoleStatements:
     - Effect: Allow

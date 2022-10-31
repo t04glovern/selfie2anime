@@ -1,3 +1,2 @@
-boto3
-Pillow
-aws-xray-sdk
+boto3==1.25.4
+Pillow==9.3.0

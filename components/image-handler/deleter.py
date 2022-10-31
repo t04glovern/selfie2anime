@@ -3,12 +3,7 @@ import os
 from string import Template
 from time import time
 
-from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.core import patch
 from boto3.dynamodb.conditions import Key
-
-libraries = (['boto3'])
-patch(libraries)
 
 dynamo_table = os.environ['DYNAMO_TABLE']
 cloudfront_dist = os.environ['CLOUDFRONT_DIST']
