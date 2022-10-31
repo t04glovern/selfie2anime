@@ -5,6 +5,6 @@
   "devDependencies": {
     "serverless-associate-waf": "^1.2.1",
     "serverless-domain-manager": "^5.2.0",
-    "serverless-python-requirements": "^5.2.1"
+    "serverless-python-requirements": "^5.4.0"
   }
 }
