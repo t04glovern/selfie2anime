@@ -3,7 +3,7 @@
 ## Setup Serverless
 
 ```bash
-npm install -g serverless
+npm install -g serverless@2.72.4
 serverless config credentials --provider aws --key <ACCESS KEY ID> --secret <SECRET KEY>
 ```
 

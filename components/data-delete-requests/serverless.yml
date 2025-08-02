@@ -15,7 +15,7 @@ custom:
 
 provider:
   name: aws
-  runtime: python3.9
+  runtime: python3.12
   stage: dev
   tracing:
     lambda: false

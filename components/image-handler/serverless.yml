@@ -1,5 +1,5 @@
 service: selfie2anime-image-handler
-frameworkVersion: '^2.68.0'
+frameworkVersion: '^2.72.4'
 
 plugins:
   - serverless-python-requirements
@@ -44,7 +44,7 @@ provider:
       Action:
        - s3:PutObject
        - s3:PutObjectAcl
-       - s3:GetObject"
+       - s3:GetObject
        - s3:DeleteObject
       Resource:
         - "arn:aws:s3:::${self:custom.environment.BUCKET_NAME}/*"
