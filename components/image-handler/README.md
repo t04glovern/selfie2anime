@@ -40,7 +40,6 @@ serverless deploy
 You can invoke your deployed functions using the following
 
 ```bash
-# Activate a python environment locally (if not done by setup.sh)
 python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
