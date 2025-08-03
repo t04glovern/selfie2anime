@@ -3,8 +3,9 @@
 ## Setup Serverless
 
 ```bash
-npm install -g serverless@^2.72.4
-serverless config credentials --provider aws --key <ACCESS KEY ID> --secret <SECRET KEY>
+npm install -g serverless@^4.17.2
+# Note: Serverless Framework v4 requires authentication
+serverless login
 ```
 
 ## Python & Domain Requirements
@@ -39,7 +40,7 @@ serverless deploy
 You can invoke your deployed functions using the following
 
 ```bash
-# Activate a python envirionment locally
+# Activate a python environment locally (if not done by setup.sh)
 python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip

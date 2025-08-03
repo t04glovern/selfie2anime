@@ -1,0 +1,49 @@
+# Serverless Framework ignore file
+# https://www.serverless.com/framework/docs/providers/aws/guide/packaging/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Node modules
+node_modules/
+npm-debug.log*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation and setup files
+README.md
+setup.sh
+requirements-dev.txt
+
+# Test files
+test_*.py
+*_test.py
+tests/
+.pytest_cache/
+
+# Development files
+.env
+.env.local
+.env.development
+.env.test

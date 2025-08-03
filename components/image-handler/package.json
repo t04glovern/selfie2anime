@@ -4,10 +4,10 @@
   "version": "0.1.0",
   "devDependencies": {
     "serverless-associate-waf": "^1.2.1",
-    "serverless-domain-manager": "^5.2.0",
-    "serverless-python-requirements": "^5.2.1"
+    "serverless-domain-manager": "^8.0.0",
+    "serverless-python-requirements": "^6.1.2"
   },
   "dependencies": {
-    "serverless": "^2.72.4"
+    "serverless": "^4.17.2"
   }
 }
